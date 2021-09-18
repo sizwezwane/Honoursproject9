@@ -1,5 +1,10 @@
 import open3d as op
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cbook as cbook
+from matplotlib_scalebar.scalebar import ScaleBar
+import datetime
+from PIL import Image
 
 
 
@@ -42,8 +47,39 @@ vis.add_geometry(mes)
 ctr=vis.get_view_control()
 ctr.change_field_of_view(step=-90.0)
 ctr.set_zoom(0.35)
+imaget="GroundPlan.png"
 for i in range(100):
     vis.poll_events()
     vis.update_renderer()
-    vis.capture_screen_image("GroundPlan.png")
+    vis.capture_screen_image(imaget)
 vis.destroy_window()
+
+plt.figure()
+image = plt.imread(imaget)
+plt.imshow(image)
+plt.tick_params(axis="x",which="both",bottom=False,top=False,labelbottom=False)
+plt.tick_params(axis="y",which="both",left=False,right=False,labelleft=False)
+
+
+xmin,xmax=plt.xlim()
+ymin,ymax=plt.ylim()
+print(xmin,xmax)
+print(ymin,ymax)
+plt.title("Ground Plan")
+d=datetime.date.today().strftime("%Y-%m-%d")
+plt.text(xmin-200,ymax-90,d,size="smaller")
+plt.xlim([xmin-200,xmax+200])
+plt.ylim([ymin+150,ymax-150])
+scalebar = ScaleBar(1/260,location="lower right") # 1 pixel = 0.2 meter
+plt.gca().add_artist(scalebar)
+plt.savefig("GroundPlan.tif",format="tif",dpi=300)
+
+im= Image.open(r"GroundPlan.tif" )
+
+width,height=im.size
+left=int(0.1*width)
+right=int(0.92*width)
+top=int(0.15*height)
+bot=int(0.85*height)
+im2=im.crop((left,top,right,bot))
+im2.save("GroundPlan2.tif")
