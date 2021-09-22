@@ -5,309 +5,267 @@ import matplotlib.cbook as cbook
 from matplotlib_scalebar.scalebar import ScaleBar
 import datetime
 from PIL import Image
+import time
+
+def elevations(meshFileName):
+    initTime = time.time()
+    mes = op.io.read_triangle_mesh(meshFileName)
+
+    pol = op.visualization.SelectionPolygonVolume()
+
+    mi = mes.get_min_bound()
+    ma = mes.get_max_bound()
+
+    xav = (mi[0] + ma[0]) / 2
+    yav = (mi[1] + ma[1]) / 2
+    zav = (mi[2] + ma[2]) / 2
+
+    print("xvals", mi[0], ma[0], xav)
+    print("yvals", mi[1], ma[1], yav)
+    print("zvals", mi[2], ma[2], zav)
+
+    P5 = [mi[0], mi[1], mi[2]]
+    P6 = [ma[0], mi[1], ma[2]]
+    P7 = [mi[0], ma[1], mi[2]]
+    P8 = [ma[0], ma[1], ma[2]]
+
+    bp = np.array([P5, P6, P8, P7])
+    bp = bp.astype("float64")
+    pol.orthogonal_axis = "XY"
+    pol.axis_max = np.max(bp[:, 2])
+    pol.axis_min = np.min(bp[:, 2])
+    bp[:, 2] = 0
+
+    pol.bounding_polygon = op.utility.Vector3dVector(bp)
+
+    mes = pol.crop_triangle_mesh(mes)
+    l = np.asarray(mes.vertices)
+    mes.compute_vertex_normals()
+
+    vis = op.visualization.Visualizer()
+    vis.create_window()
+    vis.add_geometry(mes)
+    ctr = vis.get_view_control()
+    ctr.change_field_of_view(step=-90.0)
+    ctr.set_zoom(0.35)
+    imageN = "TopView.png"
+
+    # lig=vis.get_render_option()
+    # lig.light_on=False
+
+    for i in range(100):
+        vis.poll_events()
+        vis.update_renderer()
+        vis.capture_screen_image(imageN)
+    vis.destroy_window()
+
+    plt.figure()
+    image = plt.imread(imageN)
+    plt.imshow(image)
+    plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
+    plt.tick_params(axis="y", which="both", left=False, right=False, labelleft=False)
+
+    xmin, xmax = plt.xlim()
+    ymin, ymax = plt.ylim()
+    print(xmin, xmax)
+    print(ymin, ymax)
+    plt.title("Top View")
+    d = datetime.date.today().strftime("%Y-%m-%d")
+    plt.text(xmin - 200, ymax - 90, d, size="smaller")
+    plt.xlim([xmin - 200, xmax + 200])
+    plt.ylim([ymin + 150, ymax - 150])
+    scalebar = ScaleBar(1 / 260, location="lower right")  # 1 pixel = 0.2 meter
+    plt.gca().add_artist(scalebar)
+    plt.savefig("preTopView.tif", format="tif", dpi=300)
+
+    im = Image.open(r"preTopView.tif")
+
+    width, height = im.size
+    left = int(0.1 * width)
+    right = int(0.92 * width)
+    top = int(0.15 * height)
+    bot = int(0.85 * height)
+    im2 = im.crop((left, top, right, bot))
+    im2.save("TopView.tif")
+
+    r = mes.get_rotation_matrix_from_xyz((-np.pi / 2, 0, 0))
+    mes.rotate(r, center=(0, 0, 0))
+
+    sis = op.visualization.Visualizer()
+    sis.create_window()
+    sis.add_geometry(mes)
+    zctr = sis.get_view_control()
+    zctr.change_field_of_view(step=-90.0)
+    zctr.set_zoom(0.35)
+    imageE1 = "elevationE1.png"
+    for i in range(100):
+        sis.poll_events()
+        sis.update_renderer()
+        sis.capture_screen_image(imageE1)
+    sis.destroy_window()
+
+    plt.figure()
+    image1 = plt.imread(imageE1)
+    plt.imshow(image1)
+    plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
+    plt.tick_params(axis="y", which="both", left=False, right=False, labelleft=False)
+
+    xmin, xmax = plt.xlim()
+    ymin, ymax = plt.ylim()
+    print(xmin, xmax)
+    print(ymin, ymax)
+    plt.title("Elevation E1")
+    d = datetime.date.today().strftime("%Y-%m-%d")
+    plt.text(xmin - 200, ymax - 90, d, size="smaller")
+    plt.xlim([xmin - 200, xmax + 200])
+    plt.ylim([ymin + 150, ymax - 150])
+    scalebar = ScaleBar(1 / 260, location="lower right")  # 1 pixel = 0.2 meter
+    plt.gca().add_artist(scalebar)
+    plt.savefig("preElevationE1.tif", format="tif", dpi=300)
+
+    im1 = Image.open(r"preElevationE1.tif")
+
+    width, height = im.size
+    left = int(0.1 * width)
+    right = int(0.92 * width)
+    top = int(0.15 * height)
+    bot = int(0.85 * height)
+    im12 = im1.crop((left, top, right, bot))
+    im12.save("elevationE1.tif")
+
+    r = mes.get_rotation_matrix_from_xyz((0, -np.pi / 2, 0))
+    mes.rotate(r, center=(0, 0, 0))
+
+    tis = op.visualization.Visualizer()
+    tis.create_window()
+    tis.add_geometry(mes)
+    fctr = tis.get_view_control()
+    fctr.change_field_of_view(step=-90.0)
+    fctr.set_zoom(0.35)
+    imageE2 = "elevationE2.png"
+
+    for i in range(100):
+        tis.poll_events()
+        tis.update_renderer()
+        tis.capture_screen_image(imageE2)
+    tis.destroy_window()
+
+    plt.figure()
+    image2 = plt.imread(imageE2)
+    plt.imshow(image2)
+    plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
+    plt.tick_params(axis="y", which="both", left=False, right=False, labelleft=False)
+
+    xmin, xmax = plt.xlim()
+    ymin, ymax = plt.ylim()
+    print(xmin, xmax)
+    print(ymin, ymax)
+    plt.title("Elevation E2")
+    d = datetime.date.today().strftime("%Y-%m-%d")
+    plt.text(xmin - 200, ymax - 90, d, size="smaller")
+    plt.xlim([xmin - 200, xmax + 200])
+    plt.ylim([ymin + 150, ymax - 150])
+    scalebar = ScaleBar(1 / 260, location="lower right")  # 1 pixel = 0.2 meter
+    plt.gca().add_artist(scalebar)
+    plt.savefig("preElevationE2.tif", format="tif", dpi=300)
+
+    im2 = Image.open(r"preElevationE2.tif")
+    width, height = im2.size
+    left = int(0.1 * width)
+    right = int(0.92 * width)
+    top = int(0.15 * height)
+    bot = int(0.85 * height)
+    im22 = im2.crop((left, top, right, bot))
+    im22.save("elevationE2.tif")
+
+    r = mes.get_rotation_matrix_from_xyz((0, -np.pi / 2, 0))
+    mes.rotate(r, center=(0, 0, 0))
+
+    uis = op.visualization.Visualizer()
+    uis.create_window()
+    uis.add_geometry(mes)
+    pctr = uis.get_view_control()
+    pctr.change_field_of_view(step=-90.0)
+    pctr.set_zoom(0.35)
+    imageE3 = "elevationE3.png"
+    for i in range(100):
+        uis.poll_events()
+        uis.update_renderer()
+        uis.capture_screen_image(imageE3)
+    uis.destroy_window()
+
+    plt.figure()
+    image3 = plt.imread(imageE3)
+    plt.imshow(image3)
+    plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
+    plt.tick_params(axis="y", which="both", left=False, right=False, labelleft=False)
+    xmin, xmax = plt.xlim()
+    ymin, ymax = plt.ylim()
+    print(xmin, xmax)
+    print(ymin, ymax)
+    plt.title("Elevation E3")
+    d = datetime.date.today().strftime("%Y-%m-%d")
+    plt.text(xmin - 200, ymax - 90, d, size="smaller")
+    plt.xlim([xmin - 200, xmax + 200])
+    plt.ylim([ymin + 150, ymax - 150])
+    scalebar = ScaleBar(1 / 260, location="lower right")  # 1 pixel = 0.2 meter
+    plt.gca().add_artist(scalebar)
+    plt.savefig("preElevationE3.tif", format="tif", dpi=300)
+
+    im3 = Image.open(r"preElevationE3.tif")
+    width, height = im3.size
+    left = int(0.1 * width)
+    right = int(0.92 * width)
+    top = int(0.15 * height)
+    bot = int(0.85 * height)
+    im32 = im3.crop((left, top, right, bot))
+    im32.save("elevationE3.tif")
+
+    r = mes.get_rotation_matrix_from_xyz((0, -np.pi / 2, 0))
+    mes.rotate(r, center=(0, 0, 0))
+
+    wis = op.visualization.Visualizer()
+    wis.create_window()
+    wis.add_geometry(mes)
+    lctr = wis.get_view_control()
+    lctr.change_field_of_view(step=-90.0)
+    lctr.set_zoom(0.35)
+    imageE4 = "elevationE4.png"
+    for i in range(100):
+        wis.poll_events()
+        wis.update_renderer()
+        wis.capture_screen_image(imageE4)
+    wis.destroy_window()
+
+    plt.figure()
+    image4 = plt.imread(imageE4)
+    plt.imshow(image4)
+    plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
+    plt.tick_params(axis="y", which="both", left=False, right=False, labelleft=False)
+
+    xmin, xmax = plt.xlim()
+    ymin, ymax = plt.ylim()
+    print(xmin, xmax)
+    print(ymin, ymax)
+    plt.title("Elevation E4")
+    d = datetime.date.today().strftime("%Y-%m-%d")
+    plt.text(xmin - 200, ymax - 90, d, size="smaller")
+    plt.xlim([xmin - 200, xmax + 200])
+    plt.ylim([ymin + 150, ymax - 150])
+    scalebar = ScaleBar(1 / 260, location="lower right")  # 1 pixel = 0.2 meter
+    plt.gca().add_artist(scalebar)
+    plt.savefig("preElevationE4.tif", format="tif", dpi=300)
+
+    im4 = Image.open(r"preElevationE4.tif")
+    width, height = im4.size
+    left = int(0.1 * width)
+    right = int(0.92 * width)
+    top = int(0.15 * height)
+    bot = int(0.85 * height)
+    im42 = im4.crop((left, top, right, bot))
+    im42.save("elevationE4.tif")
+
+    endTime = time.time()
+    print("The run time for a elevations is: ", endTime - initTime, "secs")
 
-mes=op.io.read_triangle_mesh("Dresden.ply")
-
-pol=op.visualization.SelectionPolygonVolume()
-
-mi=mes.get_min_bound()
-ma=mes.get_max_bound()
-
-xav=(mi[0]+ma[0])/2
-yav=(mi[1]+ma[1])/2
-zav=(mi[2]+ma[2])/2
-
-print("xvals",mi[0],ma[0],xav)
-print("yvals",mi[1],ma[1],yav)
-print("zvals",mi[2],ma[2],zav)
-
-P5=[mi[0],mi[1],mi[2]]
-P6=[ma[0],mi[1],ma[2]]
-P7=[mi[0],ma[1],mi[2]]
-P8=[ma[0],ma[1],ma[2]]
-
-bp=np.array([P5,P6,P8,P7])
-bp=bp.astype("float64")
-pol.orthogonal_axis="XY"
-pol.axis_max=np.max(bp[:,2])
-pol.axis_min=np.min(bp[:,2])
-bp[:,2]=0
-
-pol.bounding_polygon=op.utility.Vector3dVector(bp)
-
-mes=pol.crop_triangle_mesh(mes)
-l= np.asarray(mes.vertices)
-mes.compute_vertex_normals()
-
-
-vis=op.visualization.Visualizer()
-vis.create_window()
-vis.add_geometry(mes)
-ctr=vis.get_view_control()
-ctr.change_field_of_view(step=-90.0)
-ctr.set_zoom(0.35)
-imageN="TopView.png"
-
-#lig=vis.get_render_option()
-#lig.light_on=False
-
-for i in range(100):
-    vis.poll_events()
-    vis.update_renderer()
-    vis.capture_screen_image(imageN)
-vis.destroy_window()
-
-plt.figure()
-image = plt.imread(imageN)
-plt.imshow(image)
-plt.tick_params(axis="x",which="both",bottom=False,top=False,labelbottom=False)
-plt.tick_params(axis="y",which="both",left=False,right=False,labelleft=False)
-
-
-xmin,xmax=plt.xlim()
-ymin,ymax=plt.ylim()
-print(xmin,xmax)
-print(ymin,ymax)
-plt.title("Top View")
-d=datetime.date.today().strftime("%Y-%m-%d")
-plt.text(xmin-200,ymax-90,d,size="smaller")
-plt.xlim([xmin-200,xmax+200])
-plt.ylim([ymin+150,ymax-150])
-scalebar = ScaleBar(1/260,location="lower right") # 1 pixel = 0.2 meter
-plt.gca().add_artist(scalebar)
-plt.savefig("preTopView.tif",format="tif",dpi=300)
-
-im= Image.open(r"preTopView.tif" )
-
-width,height=im.size
-left=int(0.1*width)
-right=int(0.92*width)
-top=int(0.15*height)
-bot=int(0.85*height)
-im2=im.crop((left,top,right,bot))
-im2.save("TopView.tif")
-
-
-
-
-r = mes.get_rotation_matrix_from_xyz((-np.pi / 2,0, 0))
-mes.rotate(r, center=(0, 0, 0))
-
-sis=op.visualization.Visualizer()
-sis.create_window()
-sis.add_geometry(mes)
-zctr=sis.get_view_control()
-zctr.change_field_of_view(step=-90.0)
-zctr.set_zoom(0.35)
-imageE1="elevationE1.png"
-for i in range(100):
-    sis.poll_events()
-    sis.update_renderer()
-    sis.capture_screen_image(imageE1)
-sis.destroy_window()
-
-plt.figure()
-image1 = plt.imread(imageE1)
-plt.imshow(image1)
-plt.tick_params(axis="x",which="both",bottom=False,top=False,labelbottom=False)
-plt.tick_params(axis="y",which="both",left=False,right=False,labelleft=False)
-
-
-xmin,xmax=plt.xlim()
-ymin,ymax=plt.ylim()
-print(xmin,xmax)
-print(ymin,ymax)
-plt.title("Elevation E1")
-d=datetime.date.today().strftime("%Y-%m-%d")
-plt.text(xmin-200,ymax-90,d,size="smaller")
-plt.xlim([xmin-200,xmax+200])
-plt.ylim([ymin+150,ymax-150])
-scalebar = ScaleBar(1/260,location="lower right") # 1 pixel = 0.2 meter
-plt.gca().add_artist(scalebar)
-plt.savefig("preElevationE1.tif",format="tif",dpi=300)
-
-im1= Image.open(r"preElevationE1.tif" )
-
-width,height=im.size
-left=int(0.1*width)
-right=int(0.92*width)
-top=int(0.15*height)
-bot=int(0.85*height)
-im12=im1.crop((left,top,right,bot))
-im12.save("elevationE1.tif")
-
-
-
-r = mes.get_rotation_matrix_from_xyz((0, -np.pi / 2, 0))
-mes.rotate(r, center=(0, 0, 0))
-
-tis=op.visualization.Visualizer()
-tis.create_window()
-tis.add_geometry(mes)
-fctr=tis.get_view_control()
-fctr.change_field_of_view(step=-90.0)
-fctr.set_zoom(0.35)
-imageE2="elevationE2.png"
-
-for i in range(100):
-    tis.poll_events()
-    tis.update_renderer()
-    tis.capture_screen_image(imageE2)
-tis.destroy_window()
-
-
-plt.figure()
-image2 = plt.imread(imageE2)
-plt.imshow(image2)
-plt.tick_params(axis="x",which="both",bottom=False,top=False,labelbottom=False)
-plt.tick_params(axis="y",which="both",left=False,right=False,labelleft=False)
-
-
-xmin,xmax=plt.xlim()
-ymin,ymax=plt.ylim()
-print(xmin,xmax)
-print(ymin,ymax)
-plt.title("Elevation E2")
-d=datetime.date.today().strftime("%Y-%m-%d")
-plt.text(xmin-200,ymax-90,d,size="smaller")
-plt.xlim([xmin-200,xmax+200])
-plt.ylim([ymin+150,ymax-150])
-scalebar = ScaleBar(1/260,location="lower right") # 1 pixel = 0.2 meter
-plt.gca().add_artist(scalebar)
-plt.savefig("preElevationE2.tif",format="tif",dpi=300)
-
-im2= Image.open(r"preElevationE2.tif" )
-width,height=im2.size
-left=int(0.1*width)
-right=int(0.92*width)
-top=int(0.15*height)
-bot=int(0.85*height)
-im22=im2.crop((left,top,right,bot))
-im22.save("elevationE2.tif")
-
-
-
-r = mes.get_rotation_matrix_from_xyz((0, -np.pi / 2, 0))
-mes.rotate(r, center=(0, 0, 0))
-
-uis=op.visualization.Visualizer()
-uis.create_window()
-uis.add_geometry(mes)
-pctr=uis.get_view_control()
-pctr.change_field_of_view(step=-90.0)
-pctr.set_zoom(0.35)
-imageE3="elevationE3.png"
-for i in range(100):
-    uis.poll_events()
-    uis.update_renderer()
-    uis.capture_screen_image(imageE3)
-uis.destroy_window()
-
-plt.figure()
-image3 = plt.imread(imageE3)
-plt.imshow(image3)
-plt.tick_params(axis="x",which="both",bottom=False,top=False,labelbottom=False)
-plt.tick_params(axis="y",which="both",left=False,right=False,labelleft=False)
-xmin,xmax=plt.xlim()
-ymin,ymax=plt.ylim()
-print(xmin,xmax)
-print(ymin,ymax)
-plt.title("Elevation E3")
-d=datetime.date.today().strftime("%Y-%m-%d")
-plt.text(xmin-200,ymax-90,d,size="smaller")
-plt.xlim([xmin-200,xmax+200])
-plt.ylim([ymin+150,ymax-150])
-scalebar = ScaleBar(1/260,location="lower right") # 1 pixel = 0.2 meter
-plt.gca().add_artist(scalebar)
-plt.savefig("preElevationE3.tif",format="tif",dpi=300)
-
-im3= Image.open(r"preElevationE3.tif" )
-width,height=im3.size
-left=int(0.1*width)
-right=int(0.92*width)
-top=int(0.15*height)
-bot=int(0.85*height)
-im32=im3.crop((left,top,right,bot))
-im32.save("elevationE3.tif")
-
-
-
-
-r = mes.get_rotation_matrix_from_xyz((0, -np.pi / 2, 0))
-mes.rotate(r, center=(0, 0, 0))
-
-wis=op.visualization.Visualizer()
-wis.create_window()
-wis.add_geometry(mes)
-lctr=wis.get_view_control()
-lctr.change_field_of_view(step=-90.0)
-lctr.set_zoom(0.35)
-imageE4="elevationE4.png"
-for i in range(100):
-    wis.poll_events()
-    wis.update_renderer()
-    wis.capture_screen_image(imageE4)
-wis.destroy_window()
-
-plt.figure()
-image4 = plt.imread(imageE4)
-plt.imshow(image4)
-plt.tick_params(axis="x",which="both",bottom=False,top=False,labelbottom=False)
-plt.tick_params(axis="y",which="both",left=False,right=False,labelleft=False)
-
-xmin,xmax=plt.xlim()
-ymin,ymax=plt.ylim()
-print(xmin,xmax)
-print(ymin,ymax)
-plt.title("Elevation E4")
-d=datetime.date.today().strftime("%Y-%m-%d")
-plt.text(xmin-200,ymax-90,d,size="smaller")
-plt.xlim([xmin-200,xmax+200])
-plt.ylim([ymin+150,ymax-150])
-scalebar = ScaleBar(1/260,location="lower right") # 1 pixel = 0.2 meter
-plt.gca().add_artist(scalebar)
-plt.savefig("preElevationE4.tif",format="tif",dpi=300)
-
-im4= Image.open(r"preElevationE4.tif" )
-width,height=im4.size
-left=int(0.1*width)
-right=int(0.92*width)
-top=int(0.15*height)
-bot=int(0.85*height)
-im42=im4.crop((left,top,right,bot))
-im42.save("elevationE4.tif")
-
-
-
-
-#op.visualization.draw_geometries([mes],width=1000)
-
-
-
-
-#vis=op.visualization.ViewControl()
-#vis.convert_to_pinhole_camera_parameters()
-#vis=op.visualization.Visualizer( )
-
-#vis.create_window()
-#vis.add_geometry(mes)
-
-#for i in range(2):
-
- #   vis.poll_events()
-  #  vis.update_renderer()
-   # vis.capture_screen_image("elevation.png")
-
-#vis.destroy_window()
-
-
-
-
-
-
-
-#print(mes.triangles[0].vertices)
-#mesh=stl.stlmesh("Bearded guy.ply")
-#meshSlicer= sl.slicer(mesh.triangles,None,1,False)
-#meshSlicer.incremental_slicing()
-#print(np.asarray(meshSlicer.planes[0][0].vertices[0].coord))
+
