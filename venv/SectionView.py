@@ -167,4 +167,4 @@ def sectionViews(meshFileName):
     im42.save("SectionViewS2.tif")
 
     endTime = time.time()
-    print("The run time for section views is: ", endTime - initTime, "secs")
+    print("The runtime for section views is: ", endTime - initTime, "secs")

@@ -150,4 +150,4 @@ def groundPlans(meshFileName):
     im2.save("GroundPlan.tif")
 
     endTime = time.time()
-    print("The run time for a ground plan is: ", endTime - initTime, "secs")
+    print("The runtime for a ground plan is: ", endTime - initTime, "secs")
