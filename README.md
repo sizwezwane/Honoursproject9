@@ -4,11 +4,8 @@
 Open3D, numpy, matplotlib, PIL, PySimpleGUI, matplotlib-scalebar
 
 To install:
-  
-  pip install open3d
-  pip install numpy
-  pip install matplotlib
-  pip install Pillow
-  pip install pysimplegui
-  pip install matplotlib-scalebar
+  pip install open3d numpy matplotlib Pillow pysimplegui matplotlib-scalebar
 
+### Run
+
+run the gui.py file only
