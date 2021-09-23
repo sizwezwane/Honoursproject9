@@ -1,5 +1,5 @@
-# Honoursproject9
+# Honoursproject Scan3D
 
-## Installation
-Dependencies: Open3D, numpy, matplotlib, PIL, PySimpleGUI
+## Dependencies
+Open3D, numpy, matplotlib, PIL, PySimpleGUI
 
