@@ -7,5 +7,4 @@ To install:
   pip install open3d numpy matplotlib Pillow pysimplegui matplotlib-scalebar
 
 ### Run
-
-run the gui.py file only
+python gui.py
