@@ -255,6 +255,6 @@ def elevations(meshFileName):
     im42.save("elevationE4.tif")
 
     endTime = time.time()
-    print("The runtime for elevations is: ", endTime - initTime, "secs")
+    print("The runtime for elevations is: ", endTime - initTime, "sec")
 
 
