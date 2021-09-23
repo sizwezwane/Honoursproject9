@@ -6,22 +6,24 @@ from GroundPlans import groundPlans
 from Elevations import elevations
 from SectionView import sectionViews
 
-sg.theme("DarkTeal2")
-layout = [[sg.Image(key="-IMAGE-")], [sg.Text("Choose a file: "), sg.Input(), sg.FileBrowse(key="-IN-")], [sg.Button("Submit")]]
+sg.theme("Black")
+layout = [[sg.Image(key="-IMAGE-")], [sg.Text("Choose a mesh file: "), sg.Input(), sg.FileBrowse(key="-IN-")], [sg.Button("Start processing")]]
 
 ###Building Window
-window = sg.Window('My File Browser', layout)
+window = sg.Window('Scan3d tool', layout)
 
 while True:
     event, values = window.read()
     if event == sg.WIN_CLOSED or event == "Exit":
         break
-    elif event == "Submit":
+    elif event == "Start processing":
         filename=values["-IN-"]
         if os.path.exists(filename):
             groundPlans(filename)
             elevations(filename)
             sectionViews(filename)
+
+            image=Image.open("liner.png")
 
             bio=io.BytesIO()
             image.save(bio,format="PNG")

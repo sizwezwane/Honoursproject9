@@ -10,42 +10,45 @@ import time
 def sectionViews(meshFileName):
 
     initTime = time.time()
+
+    #input mesh
     mes = op.io.read_triangle_mesh(meshFileName)
 
     r = mes.get_rotation_matrix_from_xyz((-np.pi / 2, 0, 0))
     mes.rotate(r, center=(0, 0, 0))
 
-    pol = op.visualization.SelectionPolygonVolume()
 
+    # boundary coordinates
     mi = mes.get_min_bound()
     ma = mes.get_max_bound()
 
+    # midpoints of boundaries
     xav = (mi[0] + ma[0]) / 2
     yav = (mi[1] + ma[1]) / 2
     zav = (mi[2] + ma[2]) / 2
 
-    print("xvals", mi[0], ma[0], xav)
-    print("yvals", mi[1], ma[1], yav)
-    print("zvals", mi[2], ma[2], zav)
-
+    # crop volume coordinates
     P5 = [mi[0], mi[1], mi[2]]
     P6 = [ma[0], mi[1], zav + 5]
     P7 = [mi[0], ma[1], mi[2]]
     P8 = [ma[0], ma[1], zav + 5]
 
+    # clipping plane processing
+    pol = op.visualization.SelectionPolygonVolume()
     bp = np.array([P5, P6, P8, P7])
     bp = bp.astype("float64")
     pol.orthogonal_axis = "XY"
     pol.axis_max = np.max(bp[:, 2])
     pol.axis_min = np.min(bp[:, 2])
     bp[:, 2] = 0
-
     pol.bounding_polygon = op.utility.Vector3dVector(bp)
 
+    # remesh after clipping
     mes = pol.crop_triangle_mesh(mes)
     l = np.asarray(mes.vertices)
     mes.compute_vertex_normals()
 
+    # visualiser for S1
     vis = op.visualization.Visualizer()
     vis.create_window()
     vis.add_geometry(mes)
@@ -68,8 +71,7 @@ def sectionViews(meshFileName):
 
     xmin, xmax = plt.xlim()
     ymin, ymax = plt.ylim()
-    print(xmin, xmax)
-    print(ymin, ymax)
+
     plt.title("Section View S1")
     d = datetime.date.today().strftime("%Y-%m-%d")
     plt.text(xmin - 200, ymax - 90, d, size="smaller")
@@ -88,6 +90,8 @@ def sectionViews(meshFileName):
     im42 = im1.crop((left, top, right, bot))
     im42.save("sectionViewS1.tif")
 
+
+
     mes = op.io.read_triangle_mesh(meshFileName)
 
     r = mes.get_rotation_matrix_from_xyz((-np.pi / 2, 0, -np.pi / 2))
@@ -102,9 +106,7 @@ def sectionViews(meshFileName):
     yav = (mi[1] + ma[1]) / 2
     zav = (mi[2] + ma[2]) / 2
 
-    print("xvals", mi[0], ma[0], xav)
-    print("yvals", mi[1], ma[1], yav)
-    print("zvals", mi[2], ma[2], zav)
+
 
     P5 = [mi[0], mi[1], mi[2]]
     P6 = [ma[0], mi[1], zav]
@@ -117,13 +119,13 @@ def sectionViews(meshFileName):
     pol.axis_max = np.max(bp[:, 2])
     pol.axis_min = np.min(bp[:, 2])
     bp[:, 2] = 0
-
     pol.bounding_polygon = op.utility.Vector3dVector(bp)
 
     mes = pol.crop_triangle_mesh(mes)
     l = np.asarray(mes.vertices)
     mes.compute_vertex_normals()
 
+    # visualiser for S2
     wis = op.visualization.Visualizer()
     wis.create_window()
     wis.add_geometry(mes)
@@ -145,8 +147,7 @@ def sectionViews(meshFileName):
 
     xmin, xmax = plt.xlim()
     ymin, ymax = plt.ylim()
-    print(xmin, xmax)
-    print(ymin, ymax)
+
     plt.title("Section View S2")
     d = datetime.date.today().strftime("%Y-%m-%d")
     plt.text(xmin - 200, ymax - 90, d, size="smaller")
@@ -166,4 +167,4 @@ def sectionViews(meshFileName):
     im42.save("SectionViewS2.tif")
 
     endTime = time.time()
-    print("The run time for a elevations is: ", endTime - initTime, "secs")
+    print("The run time for section views is: ", endTime - initTime, "secs")
